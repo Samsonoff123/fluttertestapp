@@ -1,9 +1,10 @@
-import 'package:equatable/equatable.dart';
-import 'package:my_app/features/data/models/user_model.dart';
+part of 'user_bloc.dart';
 
 abstract class UserState extends Equatable {
+  const UserState();
+
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class UserInitial extends UserState {}
@@ -11,19 +12,19 @@ class UserInitial extends UserState {}
 class UserLoading extends UserState {}
 
 class UserLoaded extends UserState {
-  final UserModel user;
+  final UserEntity user;
 
-  UserLoaded({required this.user});
+  const UserLoaded({required this.user});
 
   @override
-  List<Object?> get props => [user];
+  List<Object> get props => [user];
 }
 
 class UserError extends UserState {
   final String message;
 
-  UserError({required this.message});
+  const UserError({required this.message});
 
   @override
-  List<Object?> get props => [message];
+  List<Object> get props => [message];
 }

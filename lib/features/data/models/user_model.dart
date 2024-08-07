@@ -73,4 +73,42 @@ class UserModel {
       verifyProfile: entity.verifyProfile,
     );
   }
+
+   factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      id: map['id'],
+      userPhoneNumber: map['userPhoneNumber'],
+      fullName: map['fullName'],
+      userAvatar: map['userAvatar'],
+      lastSeenDateTime: map['lastSeenDateTime'],
+      lastMessageBody: map['lastMessageBody'],
+      lastMessageDateTime: map['lastMessageDateTime'],
+      lastMessageCategory: map['lastMessageCategory'],
+      lastMessageType: map['lastMessageType'],
+      lastMessageIsReadByTargetUser: map['lastMessageIsReadByTargetUser'] == 1,
+      isConfirm: map['isConfirm'] == 1,
+      notReadMessageCount: map['notReadMessageCount'],
+      verifyCode: map['verifyCode'],
+      verifyProfile: map['verifyProfile'] == 1,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userPhoneNumber': userPhoneNumber,
+      'fullName': fullName,
+      'userAvatar': userAvatar,
+      'lastSeenDateTime': lastSeenDateTime,
+      'lastMessageBody': lastMessageBody,
+      'lastMessageDateTime': lastMessageDateTime,
+      'lastMessageCategory': lastMessageCategory,
+      'lastMessageType': lastMessageType,
+      'lastMessageIsReadByTargetUser': lastMessageIsReadByTargetUser == true ? 1 : 0,
+      'isConfirm': isConfirm == true ? 1 : 0,
+      'notReadMessageCount': notReadMessageCount,
+      'verifyCode': verifyCode,
+      'verifyProfile': verifyProfile == true ? 1 : 0,
+    };
+  }
 }

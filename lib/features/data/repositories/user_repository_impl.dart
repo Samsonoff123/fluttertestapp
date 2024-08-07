@@ -6,14 +6,6 @@ import 'package:my_app/features/domain/entities/user_entity.dart';
 import 'package:my_app/features/domain/repositories/user_repository.dart';
 import 'package:my_app/features/data/models/user_model.dart';
 
-abstract class UserRepository {
-  Future<Either<Failure, UserEntity>> getUserById(int id);
-  Future<Either<Failure, List<UserEntity>>> getAllUsers();
-  Future<Either<Failure, void>> addUser(UserEntity user);
-  Future<Either<Failure, void>> updateUser(UserEntity user);
-  Future<Either<Failure, void>> deleteUser(int id);
-}
-
 class UserRepositoryImpl implements UserRepository {
   final UserLocalDataSource localDataSource;
 

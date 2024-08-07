@@ -1,13 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:my_app/injection_container.dart'; // Убедитесь, что путь верный
+import 'package:my_app/injection_container.dart';
 import 'package:my_app/features/presentation/blocs/user_bloc/user_bloc.dart';
-import 'package:my_app/features/presentation/blocs/user_bloc/user_event.dart';
-import 'package:my_app/features/presentation/blocs/user_bloc/user_state.dart';
+import 'package:my_app/features/data/models/user_model.dart';
+import 'package:my_app/features/data/datasources/user_local_data_source.dart';
+import 'package:my_app/features/presentation/screens/privat_wrapper_screen.dart';
+import 'package:my_app/services/signalr_service.dart';
+import 'package:my_app/features/presentation/blocs/messages_cubit.dart';
+import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initLocator(); // Инициализация зависимостей
+  print('Initializing dependencies...');
+  await initLocator();
+
+  final userName = defaultTargetPlatform == TargetPlatform.windows 
+  ? 'windowsUser' 
+  : 'androidUser';
+
+  final userLocalDataSource = sl<UserLocalDataSource>();
+  await userLocalDataSource.addUser(UserModel(
+    id: 1,
+    userPhoneNumber: '123456789',
+    fullName: userName,
+    userAvatar: 'path/to/avatar',
+    lastSeenDateTime: '2023-07-01T12:34:56',
+    lastMessageBody: 'Hello',
+    lastMessageDateTime: '2023-07-01T12:34:56',
+    lastMessageCategory: 'Text',
+    lastMessageType: 'Sent',
+    lastMessageIsReadByTargetUser: true,
+    isConfirm: true,
+    notReadMessageCount: 0,
+    verifyCode: '1234',
+    verifyProfile: true,
+  ));
+  print('Dependencies initialized');
   runApp(const MyApp());
 }
 
@@ -16,36 +44,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      home: const MyHomePage(),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<UserBloc>()..add(GetUserByIdEvent(1)), // Создание и добавление события
-      child: BlocBuilder<UserBloc, UserState>(
-        builder: (context, state) {
-          if (state is UserLoading) {
-            return const Center(child: CircularProgressIndicator()); // Добавление Center для выравнивания
-          } else if (state is UserLoaded) {
-            return Center(child: Text('User: ${state.user.fullName}')); // Добавление Center для выравнивания
-          } else if (state is UserError) {
-            return Center(child: Text('Error: ${state.message}')); // Добавление Center для выравнивания
-          }
-          return const Center(child: Text('No data available')); // По умолчанию
-        },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => sl<UserBloc>()..add(const GetUserByIdEvent(id: 1))),
+        BlocProvider(create: (context) => MessagesCubit()),
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        home: PrivatWrapperScreen(),
       ),
     );
   }
