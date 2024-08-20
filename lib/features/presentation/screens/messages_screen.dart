@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:my_app/features/presentation/blocs/messages_cubit.dart';
+import 'package:my_app/features/presentation/blocs/auth_cubit.dart';
 import 'package:my_app/services/signalr_service.dart';
 
 class MessagesScreen extends StatefulWidget {
@@ -15,7 +16,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
     super.initState();
-    _signalRService.connectToSignalR();
+    _initializeSignalR();
+  }
+
+  Future<void> _initializeSignalR() async {
+    final authCubit = context.read<AuthCubit>();
+    await _signalRService.connectToSignalR(authCubit);
 
     _signalRService.onNewMessage = (String message) {
       context.read<MessagesCubit>().addMessage(message);

@@ -1,46 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:my_app/injection_container.dart';
 import 'package:my_app/features/presentation/blocs/user_bloc/user_bloc.dart';
-import 'package:my_app/features/data/models/user_model.dart';
-import 'package:my_app/features/data/datasources/user_local_data_source.dart';
-import 'package:my_app/features/presentation/screens/privat_wrapper_screen.dart';
-import 'package:my_app/services/signalr_service.dart';
 import 'package:my_app/features/presentation/blocs/messages_cubit.dart';
-import 'package:flutter/foundation.dart';
+import 'package:my_app/features/presentation/screens/wrappers/privat_wrapper_screen.dart';
+import 'package:my_app/features/presentation/screens/wrappers/login_wrapper_screen.dart';
+import 'package:my_app/features/presentation/blocs/auth_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print('Initializing dependencies...');
   await initLocator();
 
-  final userName = defaultTargetPlatform == TargetPlatform.windows 
-  ? 'windowsUser' 
-  : 'androidUser';
+  final storage = FlutterSecureStorage();
+  final authCubit = AuthCubit(storage);
 
-  final userLocalDataSource = sl<UserLocalDataSource>();
-  await userLocalDataSource.addUser(UserModel(
-    id: 1,
-    userPhoneNumber: '123456789',
-    fullName: userName,
-    userAvatar: 'path/to/avatar',
-    lastSeenDateTime: '2023-07-01T12:34:56',
-    lastMessageBody: 'Hello',
-    lastMessageDateTime: '2023-07-01T12:34:56',
-    lastMessageCategory: 'Text',
-    lastMessageType: 'Sent',
-    lastMessageIsReadByTargetUser: true,
-    isConfirm: true,
-    notReadMessageCount: 0,
-    verifyCode: '1234',
-    verifyProfile: true,
-  ));
   print('Dependencies initialized');
-  runApp(const MyApp());
+
+  runApp(MyApp(authCubit: authCubit));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AuthCubit authCubit;
+
+  const MyApp({super.key, required this.authCubit});
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +32,27 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => sl<UserBloc>()..add(const GetUserByIdEvent(id: 1))),
         BlocProvider(create: (context) => MessagesCubit()),
+        BlocProvider.value(value: authCubit),
       ],
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        home: PrivatWrapperScreen(),
+      child: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) {
+          Widget initialScreen;
+
+          if (state is AuthLoading) {
+            initialScreen = const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          } else if (state is AuthAuthenticated) {
+            initialScreen = PrivatWrapperScreen();
+          } else {
+            initialScreen = const LoginWrapperScreen();
+          }
+
+          return MaterialApp(
+            title: 'Flutter Demo',
+            home: initialScreen,
+          );
+        },
       ),
     );
   }
